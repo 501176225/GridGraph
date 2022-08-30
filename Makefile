@@ -1,4 +1,3 @@
-
 ROOT_DIR= $(shell pwd)
 TARGETS= bin/preprocess bin/bfs bin/wcc bin/pagerank bin/spmv bin/mis bin/radii
 
@@ -7,8 +6,15 @@ CXXFLAGS?= -O3 -Wall -std=c++11 -g -fopenmp -I$(ROOT_DIR)
 HEADERS= $(shell find . -name '*.hpp')
 
 all: $(TARGETS)
+all: $(TARGETS) bin/addweight bin/sssp
+
+bin/addweight: tools/add_weights.cpp $(HEADERS)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(SYSLIBS)
 
 bin/preprocess: tools/preprocess.cpp $(HEADERS)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(SYSLIBS)
+
+bin/sssp: examples/sssp.cpp $(HEADERS)
 	$(CXX) $(CXXFLAGS) -o $@ $< $(SYSLIBS)
 
 bin/bfs: examples/bfs.cpp $(HEADERS)
@@ -31,4 +37,3 @@ bin/radii: examples/radii.cpp $(HEADERS)
 
 clean:
 	rm -rf $(TARGETS)
-
