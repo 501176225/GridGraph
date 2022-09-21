@@ -54,13 +54,9 @@ typedef struct node {
 
 void add_a_node(Head *head, int dat) {
 	if(head->nodenum >= 0) {
-		
 		int shmid = shmget(0, sizeof(Node), IPC_CREAT | 0666);
-		if(shmid < 0) {
-			perror("shmget error:");
-			printf("shmget error!!!");
+		if(shmid < 0)
 			return;
-		}
 		Node *node = (Node *)shmat(shmid, 0, 0);
 		if(node == NULL)
 			return;
@@ -85,7 +81,6 @@ void add_a_node(Head *head, int dat) {
 			shmdt((void *)node);
 		}
 		head->nodenum++;
-		printf("dfsdf %d\n", head->nodenum);
 	}
 }
 
@@ -115,17 +110,15 @@ void delete_a_node(Head *head, int dat) {
 	}
 }
 
-void get_all_active_pid(Head* head, std::vector<int>& jobs) {
+void get_all_active_pid(Head* head) {
 	int shmId = head->firstid;
 	while (shmId != -1) {
 		Node * node = (Node*)shmat(shmId, NULL, 0);
-		jobs.push_back(node->data);
-		printf("%d\n", node->data);
+		// cout << node->data << endl;
 		shmId = node->nextid;
 	}
 
 }
-
 
 bool f_true(VertexId v) {
 	return true;
@@ -389,7 +382,6 @@ public:
 		long offset = 0;
 
 		std::vector<Head*> global_table(partitions*partitions);
-
 		key_t key = ftok(SHM_KEY_PATH, 1);
 		if (key < 0) {
 			printf("ftok failed\n");
@@ -402,6 +394,11 @@ public:
 		//vector<Head*> global_table;
 
 		Head *shm = NULL;
+		shm = (Head*)shmat(shmId, (void*)0, 0);
+		if(shm == (Head*)-1)
+		{
+			printf("shmat err.\n");
+		}
 			
 		switch(update_mode) {
 		case 0: // source oriented update
@@ -464,79 +461,20 @@ public:
 		// 按列访问, 默认的访问方式, 可以更好的利用局部性
 		case 1: // target oriented update
 			// 设置文件描述符fin和预加载方式
-
 			fin = open((path+"/column").c_str(), read_mode);
 			posix_fadvise(fin, 0, 0, POSIX_FADV_SEQUENTIAL);
 
 			for (int j = 0; j < partitions; j++) {
 				for (int i = 0; i < partitions; i++) {
 					if (!should_access_shard[i]) continue;
-					// printf("activate partition: %d \n", i*partitions+j);
+					printf("activate partition: %d \n", i*partitions+j);
 				}
 			}
 
 			
 			for (int i = 0; i < partitions*partitions; i++) {
 				global_table[i] = shm+i*sizeof(Head);
-				//printf("%d\n", global_table[i]->firstid);
 			}
-
-
-			// 更新全局表中的活跃分区
-			for (int i=0; i<partitions; i++) {
-				for (int j=0; j<partitions; j++) {
-					if (!should_access_shard[i]) continue;
-					shm = (Head*)shmat(shmId, (void*)0, 0);
-					if(shm == (Head*)-1)
-					{
-						printf("shmat err.\n");
-					}
-					Head * head = shm+(i*partitions+j)*sizeof(Head);
-					add_a_node(head, getpid());
-					printf("%d\n", head->firstid);
-					shmdt(head);
-				}
-			}
-
-			for (int i=0; i<partitions; i++) {
-				for (int j=0; j<partitions; j++) {
-					if (!should_access_shard[i]) continue;
-					shmId = shmget(key, 0, 0);
-					if (shmId < 0) {
-						printf("shmget failed\n");
-					}
-					shm = (Head*)shmat(shmId, (void*)0, 0);
-					if(shm == (Head*)-1)
-					{
-						printf("shmat err.\n");
-					}
-					// get jobs from globaltable
-					int partitionid = i*partitions+j;
-					Head * head = shm+partitionid*sizeof(Head);
-					// printf("%d\n", head->nodenum);
-				}
-			}
-
-			// for (int i=0; i<partitions; i++) {
-			// 	for (int j=0; j<partitions; j++) {
-			// 		if (!should_access_shard[i]) continue;
-			// 		shmId = shmget(key, 0, 0);
-			// 		if (shmId < 0) {
-			// 			printf("shmget failed\n");
-			// 		}
-			// 		shm = (Head*)shmat(shmId, (void*)0, 0);
-			// 		if(shm == (Head*)-1)
-			// 		{
-			// 			printf("shmat err.\n");
-			// 		}
-			// 		// get jobs from globaltable
-			// 		int partitionid = i*partitions+j;
-			// 		global_table[partitionid] = shm+partitionid*sizeof(Head);
-			// 		std::vector<int> activate_jobs;
-			// 		get_all_active_pid(global_table[partitionid], activate_jobs);
-			// 		printf("%d\n", activate_jobs.size());
-			// 	}
-			// }
 
 			// 每次迭代访问一列数据
 			for (int cur_partition=0;cur_partition<partitions;cur_partition+=partition_batch) {
@@ -594,8 +532,7 @@ public:
 						// 通过源顶点判断边分区是否活跃
 						if (!should_access_shard[i]) continue;
 						// printf("activate partition: %d \n", i*partitions+j);
-						// 找到所有的活跃分区
-						//add_a_node(global_table[i*partitions+j], getpid());
+						add_a_node(global_table[i*partitions+j], getpid());
 						long begin_offset = column_offset[j*partitions+i];
 						if (begin_offset - offset >= PAGESIZE) {
 							offset = begin_offset / PAGESIZE * PAGESIZE;

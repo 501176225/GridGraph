@@ -1,0 +1,1 @@
+/usr/bin/c++ -rdynamic CMakeFiles/demo.dir/zmqs.cpp.o -o demo  -Wl,-rpath,/usr/local/lib64 /usr/local/lib64/libzmq.so.5.2.5 -lpthread -lrt 

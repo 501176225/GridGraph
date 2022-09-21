@@ -1,9 +1,3 @@
-/*************************************************************************
- *  *      > File Name: sssp.cpp
- *   *           > Author: Mengxing Liu
- *    *                > Mail: liumengxing2010@qq.com
- *     *                     > Created Time: Sun Jun 19 19:23:36 2016
- *      *                       ************************************************************************/
  #include<iostream>
  #include "core/graph.hpp"
 

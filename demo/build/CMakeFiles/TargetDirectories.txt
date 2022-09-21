@@ -1,0 +1,4 @@
+/home/sym/GridGraph/demo/build/CMakeFiles/demo.dir
+/home/sym/GridGraph/demo/build/CMakeFiles/test.dir
+/home/sym/GridGraph/demo/build/CMakeFiles/edit_cache.dir
+/home/sym/GridGraph/demo/build/CMakeFiles/rebuild_cache.dir

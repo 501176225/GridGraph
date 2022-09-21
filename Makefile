@@ -6,9 +6,12 @@ CXXFLAGS?= -O3 -Wall -std=c++11 -g -fopenmp -I$(ROOT_DIR)
 HEADERS= $(shell find . -name '*.hpp')
 
 all: $(TARGETS)
-all: $(TARGETS) bin/addweight bin/sssp
+all: $(TARGETS) bin/addweight bin/sssp bin/prepreprocess
 
 bin/addweight: tools/add_weights.cpp $(HEADERS)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(SYSLIBS)
+
+bin/prepreprocess: tools/prepreprocess.cpp $(HEADERS)
 	$(CXX) $(CXXFLAGS) -o $@ $< $(SYSLIBS)
 
 bin/preprocess: tools/preprocess.cpp $(HEADERS)
